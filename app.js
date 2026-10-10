@@ -63,6 +63,14 @@ function bindControls() {
     updateProgress();
   });
 
+  document.querySelectorAll("[data-direction]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = pages.findIndex((page) => page.id === activeStep);
+      const next = pages[index + Number(button.dataset.direction)];
+      if (next) switchStep(next.id);
+    });
+  });
+
   document.querySelector("#printApp").addEventListener("click", printAllPages);
 
   document.querySelector("#exportData").addEventListener("click", exportData);
@@ -98,7 +106,21 @@ function switchStep(id) {
   const page = document.getElementById(id);
   stepName.textContent = page?.dataset.stepTitle || "작성 단계";
   focusQuestion.textContent = focusQuestions[id] || focusQuestions.cover;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const index = pages.findIndex((item) => item.id === id);
+  const stepCounter = document.querySelector("#stepCounter");
+  if (stepCounter) stepCounter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
+  const previousButton = document.querySelector('[data-direction="-1"]');
+  const nextButton = document.querySelector('[data-direction="1"]');
+  if (previousButton) previousButton.disabled = index === 0;
+  if (nextButton) nextButton.disabled = index === pages.length - 1;
+  navButtons.forEach((button) => {
+    if (button.dataset.target === id) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  });
+  const workspace = document.querySelector(".workspace");
+  if (window.scrollY > workspace.offsetTop) {
+    window.scrollTo({ top: Math.max(0, workspace.offsetTop - 20), behavior: "smooth" });
+  }
 }
 
 function setTodayWhenEmpty() {
